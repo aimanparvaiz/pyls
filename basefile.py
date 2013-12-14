@@ -56,11 +56,12 @@ class Basefile(object):
 			dir_path = os.getcwd()
 		l_files = os.listdir(dir_path)
 		l_files = [ files for files in l_files if files[0] != '.' ]
+
 		for l_file in l_files:
 			perms, link = self.get_mode(l_file)
 			user, grp = self.get_file_owners(l_file)
 			size = self.get_file_size(l_file)
-		print perms, user, grp, size, l_file
+			print perms, user, grp, size, l_file
 		
 
 class just_file(Basefile):
