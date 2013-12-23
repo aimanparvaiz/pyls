@@ -1,0 +1,53 @@
+import os
+import pwd
+import grp
+import stat
+import time
+import glob
+import sys
+
+def get_links_to_inode(self, l_file):
+		return os.stat(l_file).st_nlink
+	
+	def get_last_modification_time(self, l_file):
+		t_sec = os.stat(l_file).st_mtime
+		# Change time in s since epoch to struct_time
+
+		# Change struct_time to string given by format arg
+		return time.strftime("%b %d %H:%M", time.gmtime(t_sec))
+
+
+
+
+	def get_mode(self, l_file):
+		perms="-"
+		link=""
+		#mode = int(oct(stat.S_IMODE(os.stat(l_file).st_mode)))
+		mode = os.stat(l_file).st_mode
+		
+		if stat.S_ISLNK(mode):
+			perms = "l"
+			link = os.readlink(l_file)
+			#f not os.path.exists(l_file):
+		elif stat.S_ISDIR(mode):
+			perms = "d"
+		for who in "USR", "GRP", "OTH" :
+			for what in "R", "W", "X":
+				if mode & getattr(stat, "S_I"+what+who):
+					perms=perms+what.lower()
+				else:
+					perms=perms+"-"
+		return (perms, link)		
+
+	def get_file_owners(self, l_file):
+		uid = os.stat(l_file).st_uid
+		gid = os.stat(l_file).st_gid
+		
+		user = pwd.getpwuid(uid)[0]
+		group = grp.getgrgid(gid)[0]
+		
+		return (user, group)
+
+	def get_file_size(self, l_file):
+		size = os.stat(l_file).st_size
+		return size
