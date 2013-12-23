@@ -1,7 +1,28 @@
 
 from __future__ import division
-import os, pwd, grp
-import stat, time, glob
+from ls_file_attributes import *
+import os
+import stat
+
+def identify_type(cwd, flags):
+	# find all files in the listed directory 
+	dir_contents = os.listdir(cwd)
+
+	# find type; dir, file, symlink
+	for dir_content in dir_contents:
+		mode = os.stat(dir_content).st_mode
+
+		if stat.S_ISLINK(mode):
+			Symlink(cwd, flags).output()
+
+		elif stat.S_ISDIR(mode):
+			Dir(cwd, flags).output()
+
+		else:
+			# Good old plain file :)
+			File(cwd, flags).output()
+
+
 
 class Basefile(object):
 	"""
@@ -9,92 +30,64 @@ class Basefile(object):
 
 	"""
 
-	def __init__(self):
-		print 'dont know what to initialize :)'
+	def __init__(self, cwd, flags):
+		self.cwd = cwd
+		self.flags = flags
+		ls_output = []
 
-	def get_links_to_inode(self, l_file):
-		return os.stat(l_file).st_nlink
 	
-	def get_last_modification_time(self, l_file):
-		t_sec = os.stat(l_file).st_mtime
-		# Change time in s since epoch to struct_time
+	def output(self):
 
-		# Change struct_time to string given by format arg
-		return time.strftime("%b %d %H:%M", time.gmtime(t_sec))
-
-
-
-
-	def get_mode(self, l_file):
-		perms="-"
-		link=""
-		#mode = int(oct(stat.S_IMODE(os.stat(l_file).st_mode)))
-		mode = os.stat(l_file).st_mode
+		if 'a' in flags:
+			# Got all hidden files in list
+			ls_output+= [os.curdir, os.pardir] + os.listdir(self.cwd)	
 		
-		if stat.S_ISLNK(mode):
-			perms = "l"
-			link = os.readlink(l_file)
-			#f not os.path.exists(l_file):
-		elif stat.S_ISDIR(mode):
-			perms = "d"
-		for who in "USR", "GRP", "OTH" :
-			for what in "R", "W", "X":
-				if mode & getattr(stat, "S_I"+what+who):
-					perms=perms+what.lower()
-				else:
-					perms=perms+"-"
-		return (perms, link)		
-
-	def get_file_owners(self, l_file):
-		uid = os.stat(l_file).st_uid
-		gid = os.stat(l_file).st_gid
-		
-		user = pwd.getpwuid(uid)[0]
-		group = grp.getgrgid(gid)[0]
-		
-		return (user, group)
-
-	def get_file_size(self, l_file):
-		size = os.stat(l_file).st_size
-		return size
-
-	# Option -a
-	def a(self, dir_path=None):
-		# If dir_path in None then show all files in current dir
-		if not dir_path:
-			dir_path = os.getcwd()
-		# Everything in the present dir is in files now	
-		a_files = [os.curdir, os.pardir] + os.listdir(dir_path)
-		
+		if 'l' in flags:
+			# ls_output is accessible here too
+			# l|long list format is the last one to be parsed.
+			if ls_output.len() == 0:
+				# Just ls -l
+				ls_output+=option_l(self.cwd)
+			else:
+				# ls_output is the list we need to work on
+				ls_output+=option_l(self.cwd, ls_output)
+		print ls_output
 
 
 
 	# Option -l
-	def l(self, dir_path=None):
+	def option_l(cwd, ls_output=None):
+		result = []
 		total_size = 0
-		if not dir_path:
-			dir_path = os.getcwd()
-		l_files = os.listdir(dir_path)
-		l_files = [ files for files in l_files if files[0] != '.' ]
-		
-		for l_file in l_files:
+		if ls_output is None:
+			ls_output = os.listdir(cwd)
+			ls_files = [ files for files in ls_output if files[0] != '.' ]
+		else:
+			l_files = ls_output 
+
+		for l_file in ls_files:
 			perms, link = self.get_mode(l_file)
 			user, grp = self.get_file_owners(l_file)
 			size = self.get_file_size(l_file)
 			total_size = total_size+size
 			links = self.get_links_to_inode(l_file)
 			mtime = self.get_last_modification_time(l_file)
-			return (perms, links, user, grp, size, mtime, l_file)
-		
-		
+			result = [perms, links, user, grp, size, mtime, l_file]
+			return result
 
-class just_file(Basefile):
+class Dir(Basefile):
+	def __init__(self, cwd, flags):
+		Basefile.__init__(self, cwd, flags)
 
-	def stdout(self):
-		#perms, links, user, grp, size, mtime, l_file = self.l()
-		#print perms, links, user, grp, size, mtime, l_file 
-		self.a()
-					
+class File(Basefile):
+	def __init__(self, cwd, flags):
+		Basefile.__init__(self, cwd, flags)
+
+class Symlink(Basefile):
+	def __init__(self, cwd, flags):
+		Basefile.__init__(self, cwd, flags)
+
 if __name__ == '__main__':
-	obj1 = just_file()
-	obj1.stdout()
+	identify_type(sys.argv[1], sys.argv[2:])
+
+				
