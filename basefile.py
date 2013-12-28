@@ -1,6 +1,5 @@
 
 from __future__ import division
-from ls_file_attributes import *
 import os
 import stat
 import sys
@@ -54,26 +53,37 @@ def get_file_size(l_file):
 	return size
 
 
+def temp(dir_obj, file_obj, flags):
+	ls_output = []
+	all_content = [dir_obj] + [file_obj]
+	if 'a' in flags:
+        for all_object in all_content:
+            ls_output += all_object.fname
+    if 'l' in flags:
+        if len(ls_output) == 0:
+            #Just ls -l
+            for content in all_content:
+                ls_output += content.option_l(content.fname)
+    print ls_output
+
 
 def identify_type(cwd, flags):
-	# find all files in the listed directory 
-	dir_contents = os.listdir(cwd)
+    file_obj = []
+    dir_obj = []
 
+    dir_contents = os.listdir(cwd)
 
-	# find type; dir, file, symlink
-	for dir_content in dir_contents:
-		mode = os.stat(dir_content).st_mode
+    for dir_content in dir_contents:
+        mode = os.stat(dir_content).st_mode
 
-		if stat.S_ISLNK(mode):
-			Symlink(cwd, flags, dir_content).output()
+        if stat.S_ISLNK(mode):
+          Symlink(cwd, flags, dir_content)
+        elif stat.S_ISDIR(mode):
+          dir_obj.append(Dir(cwd, flags, dir_content))
+        else:
+          file_obj.append(File(cwd, flags, dir_content))
 
-		#elif stat.S_ISDIR(mode):
-		#	Dir(cwd, flags, dir_content).output()
-
-		else:
-			#print "Sending :", dir_content
-			File(cwd, flags, dir_content).output()	
-
+    temp(dir_obj, file_obj)
 
 
 class Basefile(object):
