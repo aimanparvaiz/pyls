@@ -81,18 +81,20 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		ls_output += list(sorted(mtime_list))
 
 	if 'g' in flags:
+		flag = 'g'
 		print "This is g option"	
 		ls_output = []
 		for content in all_content:
 			if content.fname[0] != '.':
-				ls_output += content.option_g(content.fname)
+				ls_output += content.long_list_format(content.fname, flag)
 
 	if 'G' in flags:
+		flag = 'G'
 		print "This is G option"	
 		ls_output = []
 		for content in all_content:
 			if content.fname[0] != '.':
-				ls_output += content.option_G(content.fname)	
+				ls_output += content.long_list_format(content.fname, flag)	
 			
 	if 'l' in flags:
 		if len(ls_output) == 0:		
@@ -100,14 +102,14 @@ def ls_output_generator(dir_obj, file_obj, flags):
 			print "this is simple -l option"
 			for content in all_content:
 				if content.fname[0] != '.':
-					ls_output += content.option_l(content.fname)
+					ls_output += content.long_list_format(content.fname)
 		else:
 			print "This is not so simple option"
 			temp_out = [b for a in ls_output for b in all_content if a == b.fname]
 			all_content = list(temp_out) # Got relevant objects
 			ls_output = []
 			for content in all_content:
-				ls_output += content.option_l(content.fname)	
+				ls_output += content.long_list_format(content.fname)	
 		
 
 	print ls_output
@@ -145,7 +147,7 @@ class Basefile(object):
 		self.fname = dir_content
 		self.ls_output = []
 
-	def option_l(self, fname):
+	def long_list_format(self, fname, flag):
 		result = []
 		total_size = 0
 		perms, link = get_mode(fname)
@@ -154,32 +156,14 @@ class Basefile(object):
 		total_size = total_size+size
 		links = get_links_to_inode(fname)
 		mtime = get_last_modification_time(fname)
-		result = [perms, links, user, grp, size, mtime, fname]
+		if flag == 'g':
+			result = [perms, links, user, size, mtime, fname]
+		elif flag == 'G':
+			result = [perms, links, grp, size, mtime, fname]
+		else:
+			result = [perms, links, user, grp, size, mtime, fname]
 		return result
 
-	def option_g(self, fname):
-		result = []
-		total_size = 0
-		perms, link = get_mode(fname)
-		user, grp = get_file_owners(fname)
-		size = get_file_size(fname)
-		total_size = total_size+size
-		links = get_links_to_inode(fname)
-		mtime = get_last_modification_time(fname)
-		result = [perms, links, grp, size, mtime, fname]
-		return result
-
-	def option_G(self, fname):
-		result = []
-		total_size = 0
-		perms, link = get_mode(fname)
-		user, grp = get_file_owners(fname)
-		size = get_file_size(fname)
-		total_size = total_size+size
-		links = get_links_to_inode(fname)
-		mtime = get_last_modification_time(fname)
-		result = [perms, links, user, size, mtime, fname]
-		return result
 
 class Dir(Basefile):
 	def __init__(self, cwd, flags, dir_content):
