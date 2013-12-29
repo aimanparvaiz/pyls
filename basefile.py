@@ -53,18 +53,52 @@ def get_file_size(l_file):
 	return size
 
 
-def temp(dir_obj, file_obj, flags):
+def ls_output_generator(dir_obj, file_obj, flags):
+	# temp has all content view
 	ls_output = []
-	all_content = [dir_obj] + [file_obj]
+	all_content = dir_obj + file_obj
 	if 'a' in flags:
-        for all_object in all_content:
-            ls_output += all_object.fname
-    if 'l' in flags:
-        if len(ls_output) == 0:
-            #Just ls -l
-            for content in all_content:
-                ls_output += content.option_l(content.fname)
-    print ls_output
+		ls_output += [os.curdir, os.pardir]
+		for all_object in all_content:
+			ls_output.append(all_object.fname)	
+			
+	if 'd' in flags:
+		print "This is d option"
+		for all_dir_obj in dir_obj:
+			ls_output.append(all_dir_obj.fname)
+		ls_output.append(os.curdir)	
+
+	if 'A' in flags:
+		print "This is A option"
+		for all_object in all_content:
+			ls_output.append(all_object.fname)
+
+	if 't' in flags:
+		print "This is t option"
+		mtime_list=[]
+		for content in all_content:
+			mtime_list += [get_last_modification_time(content.fname)]
+		ls_output += list(sorted(mtime_list))
+
+
+
+	if 'l' in flags:
+		if len(ls_output) == 0:
+		#Just ls -l
+			print "this is simple -l option"
+			for content in all_content:
+				if content.fname[0] != '.':
+					ls_output += content.option_l(content.fname)
+		else:
+			print "This is not so simple option"
+			temp_out = [b for a in ls_output for b in all_content if a == b.fname]
+			all_content = list(temp_out) # Got relevant objects
+			ls_output = []
+			for content in all_content:
+				ls_output += content.option_l(content.fname)	
+		
+
+	print ls_output
 
 
 def identify_type(cwd, flags):
@@ -79,11 +113,12 @@ def identify_type(cwd, flags):
         if stat.S_ISLNK(mode):
           Symlink(cwd, flags, dir_content)
         elif stat.S_ISDIR(mode):
-          dir_obj.append(Dir(cwd, flags, dir_content))
+        	d_obj = Dir(cwd, flags, dir_content)
+          	dir_obj.append(d_obj)
         else:
-          file_obj.append(File(cwd, flags, dir_content))
-
-    temp(dir_obj, file_obj)
+        	f_obj = File(cwd, flags, dir_content)
+          	file_obj.append(f_obj) # All files list
+    ls_output_generator(dir_obj, file_obj, flags)
 
 
 class Basefile(object):
