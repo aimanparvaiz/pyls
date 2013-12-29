@@ -86,6 +86,13 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		for content in all_content:
 			if content.fname[0] != '.':
 				ls_output += content.option_g(content.fname)
+
+	if 'G' in flags:
+		print "This is G option"	
+		ls_output = []
+		for content in all_content:
+			if content.fname[0] != '.':
+				ls_output += content.option_G(content.fname)	
 			
 	if 'l' in flags:
 		if len(ls_output) == 0:		
@@ -162,6 +169,17 @@ class Basefile(object):
 		result = [perms, links, grp, size, mtime, fname]
 		return result
 
+	def option_G(self, fname):
+		result = []
+		total_size = 0
+		perms, link = get_mode(fname)
+		user, grp = get_file_owners(fname)
+		size = get_file_size(fname)
+		total_size = total_size+size
+		links = get_links_to_inode(fname)
+		mtime = get_last_modification_time(fname)
+		result = [perms, links, user, size, mtime, fname]
+		return result
 
 class Dir(Basefile):
 	def __init__(self, cwd, flags, dir_content):
