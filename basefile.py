@@ -8,6 +8,10 @@ import grp
 import time
 import glob
 
+def assert_non_hidden(fname):
+	if fname[0] != '.':
+		return True
+
 def human_readable_file_size(num):
 	for x in ['B','K','M','G','T']:
 		if num < 1024.0:
@@ -87,7 +91,7 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		print "This is t option"
 		mtime_list=[]
 		for content in all_content:
-			if content.fname[0] != '.':
+			if assert_non_hidden(content.fname):
 				mtime_list += [(content.fname, os.path.getmtime(content.fname))]
 		mtime_list.sort(key=lambda x:x[1], reverse=True)
 		ls_output = [k for k,v in mtime_list]
@@ -98,7 +102,7 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		print "This is g option"	
 		ls_output = []
 		for content in all_content:
-			if content.fname[0] != '.':
+			if assert_non_hidden(content.fname):
 				ls_output += content.long_list_format(content.fname, flag)
 
 	if 'h' in flags:
@@ -106,7 +110,7 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		print "This is human readable long list format"
 		ls_output = []
 		for content in all_content:
-			if content.fname[0] != '.':
+			if assert_non_hidden(content.fname):
 				ls_output.append(content.fname)
 
 
@@ -115,16 +119,17 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		print "This is G option"	
 		ls_output = []
 		for content in all_content:
-			if content.fname[0] != '.':
+			if assert_non_hidden(content.fname):
 				ls_output += content.long_list_format(content.fname, flag)	
 			
 	if 'l' in flags:
-		flag = 'l'
 		if len(ls_output) == 0:		
+			flag = 'l'
+
 		#Just ls -l
 			print "this is simple -l option"
 			for content in all_content:
-				if content.fname[0] != '.':
+				if assert_non_hidden(content.fname):
 					ls_output += content.long_list_format(content.fname, flag)
 		else:
 			print "This is not so simple option"
