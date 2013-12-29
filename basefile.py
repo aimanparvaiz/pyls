@@ -8,6 +8,15 @@ import grp
 import time
 import glob
 
+def human_readable_file_size(num):
+	for x in ['B','K','M','G','T']:
+		if num < 1024.0:
+			if x == 'B':
+				return num
+			else:
+				return "%3.1f%s" % (num, x)
+		num = num/1024.0
+
 def get_links_to_inode(l_file):
 		return os.stat(l_file).st_nlink
 	
@@ -18,6 +27,7 @@ def get_last_modification_time(l_file):
 
 	# Change struct_time to string given by format arg
 	return time.strftime("%b %d %H:%M", time.gmtime(t_sec))
+
 
 def get_mode(l_file):
 	perms="-"
@@ -77,8 +87,11 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		print "This is t option"
 		mtime_list=[]
 		for content in all_content:
-			mtime_list += [get_last_modification_time(content.fname)]
-		ls_output += list(sorted(mtime_list))
+			if content.fname[0] != '.':
+				mtime_list += [(content.fname, os.path.getmtime(content.fname))]
+		mtime_list.sort(key=lambda x:x[1], reverse=True)
+		ls_output = [k for k,v in mtime_list]
+
 
 	if 'g' in flags:
 		flag = 'g'
@@ -87,6 +100,15 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		for content in all_content:
 			if content.fname[0] != '.':
 				ls_output += content.long_list_format(content.fname, flag)
+
+	if 'h' in flags:
+		flag = 'h'
+		print "This is human readable long list format"
+		ls_output = []
+		for content in all_content:
+			if content.fname[0] != '.':
+				ls_output.append(content.fname)
+
 
 	if 'G' in flags:
 		flag = 'G'
@@ -97,42 +119,43 @@ def ls_output_generator(dir_obj, file_obj, flags):
 				ls_output += content.long_list_format(content.fname, flag)	
 			
 	if 'l' in flags:
+		flag = 'l'
 		if len(ls_output) == 0:		
 		#Just ls -l
 			print "this is simple -l option"
 			for content in all_content:
 				if content.fname[0] != '.':
-					ls_output += content.long_list_format(content.fname)
+					ls_output += content.long_list_format(content.fname, flag)
 		else:
 			print "This is not so simple option"
 			temp_out = [b for a in ls_output for b in all_content if a == b.fname]
 			all_content = list(temp_out) # Got relevant objects
 			ls_output = []
 			for content in all_content:
-				ls_output += content.long_list_format(content.fname)	
+				ls_output += content.long_list_format(content.fname, flag)	
 		
 
 	print ls_output
 
 
 def identify_type(cwd, flags):
-    file_obj = []
-    dir_obj = []
+	file_obj = []
+	dir_obj = []
 
-    dir_contents = os.listdir(cwd)
+	dir_contents = os.listdir(cwd)
 
-    for dir_content in dir_contents:
-        mode = os.stat(dir_content).st_mode
+	for dir_content in dir_contents:
+		mode = os.stat(dir_content).st_mode
 
-        if stat.S_ISLNK(mode):
-          Symlink(cwd, flags, dir_content)
-        elif stat.S_ISDIR(mode):
-        	d_obj = Dir(cwd, flags, dir_content)
-          	dir_obj.append(d_obj)
-        else:
-        	f_obj = File(cwd, flags, dir_content)
-          	file_obj.append(f_obj) # All files list
-    ls_output_generator(dir_obj, file_obj, flags)
+		if stat.S_ISLNK(mode):
+		  Symlink(cwd, flags, dir_content)
+		elif stat.S_ISDIR(mode):
+			d_obj = Dir(cwd, flags, dir_content)
+			dir_obj.append(d_obj)
+		else:
+			f_obj = File(cwd, flags, dir_content)
+			file_obj.append(f_obj) # All files list
+	ls_output_generator(dir_obj, file_obj, flags)
 
 
 class Basefile(object):
@@ -147,7 +170,7 @@ class Basefile(object):
 		self.fname = dir_content
 		self.ls_output = []
 
-	def long_list_format(self, fname, flag=None):
+	def long_list_format(self, fname, flag):
 		result = []
 		total_size = 0
 		perms, link = get_mode(fname)
@@ -160,8 +183,15 @@ class Basefile(object):
 			result = [perms, links, user, size, mtime, fname]
 		elif flag == 'G':
 			result = [perms, links, grp, size, mtime, fname]
-		else:
+		elif flag == 'h':
+			h_size = human_readable_file_size(size)
+			result = [perms, links, grp, h_size, mtime, fname]
+		elif flag == 'l':
 			result = [perms, links, user, grp, size, mtime, fname]
+		elif flag == 't':
+			result = [perms, links, user, grp, size, mtime, fname]
+
+			
 		return result
 
 
