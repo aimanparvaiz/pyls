@@ -133,11 +133,6 @@ class Basefile(object):
 		self.fname = dir_content
 		self.ls_output = []
 
-	
-	def output(self):
-	 	pass
-
-
 	def option_l(self, fname):
 		result = []
 		total_size = 0
