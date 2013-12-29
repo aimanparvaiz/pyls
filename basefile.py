@@ -147,7 +147,7 @@ class Basefile(object):
 		self.fname = dir_content
 		self.ls_output = []
 
-	def long_list_format(self, fname, flag):
+	def long_list_format(self, fname, flag=None):
 		result = []
 		total_size = 0
 		perms, link = get_mode(fname)
