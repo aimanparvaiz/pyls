@@ -154,55 +154,13 @@ class Dir(Basefile):
 	def __init__(self, cwd, flags, dir_content):
 		Basefile.__init__(self, cwd, flags, dir_content)
 
+
 class File(Basefile):
 	def __init__(self, cwd, flags, dir_content):
 		self.cwd = cwd
 		self.flags = flags
 		self.fname = dir_content
 		Basefile.__init__(self, cwd, flags, dir_content)
-
-	def output(self):
-		ls_output = []
-		hidden = False
-		#AHC = False
-
-		# Check for hidden
-		if self.fname[0] == '.':
-			hidden = True
-
-		if 'a' in self.flags:
-			ls_files = [os.curdir, os.pardir, self.fname] 
-			ls_output = ls_files
-		
-		if 'A' in self.flags:
-			ls_files = [self.fname]
-			# long list
-			ls_output = ls_files
-
-		if 't' in self.flags:
-			# sort on the mtime
-			pass
-
-		if 'l' in self.flags:
-			# long list
-			if len(ls_output) == 0:
-				# Plain ls -l, wont show hidden files
-				if hidden:
-					return
-				else:
-					ls_files = [ self.fname ] 
-
-			else:
-				ls_files = ls_output 
-
-			for ls_file in ls_files:
-				#import ipdb; ipdb.set_trace()
-				# Why isnt . and .. not showing up in ls -la
-				ls_output = self.option_l(ls_file)
-		
-		print ls_output	
-
-
 
 
 class Symlink(Basefile):
