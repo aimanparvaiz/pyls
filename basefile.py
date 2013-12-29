@@ -91,7 +91,7 @@ def ls_output_generator(dir_obj, file_obj, flags):
 			ls_output.append(all_object.fname)
 
 	if 't' in flags:
-		print "This is t option"
+		print "This is sort on mtime option"
 		mtime_list=[]
 		for content in all_content:
 			if assert_non_hidden(content.fname):
@@ -132,6 +132,13 @@ def ls_output_generator(dir_obj, file_obj, flags):
 			if assert_non_hidden(content.fname):
 				 temp_out += (content.fname, get_inode_number(content.fname))
 		ls_output = list(temp_out)
+
+	if 'm' in flags:
+		flag = 'm'
+		print "Option m: a comma separated list of entries"
+		for content in all_content:
+			if assert_non_hidden:
+				ls_output.append(content.fname, )
 			
 	if 'l' in flags:
 		if len(ls_output) == 0:		
@@ -171,6 +178,7 @@ def identify_type(cwd, flags):
 		else:
 			f_obj = File(cwd, flags, dir_content)
 			file_obj.append(f_obj) # All files list
+
 	ls_output_generator(dir_obj, file_obj, flags)
 
 
