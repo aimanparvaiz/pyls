@@ -8,6 +8,9 @@ import grp
 import time
 import glob
 
+def get_inode_number(fname):
+	return os.stat(fname).st_ino
+
 def assert_non_hidden(fname):
 	if fname[0] != '.':
 		return True
@@ -113,7 +116,6 @@ def ls_output_generator(dir_obj, file_obj, flags):
 			if assert_non_hidden(content.fname):
 				ls_output.append(content.fname)
 
-
 	if 'G' in flags:
 		flag = 'G'
 		print "This is G option"	
@@ -121,6 +123,15 @@ def ls_output_generator(dir_obj, file_obj, flags):
 		for content in all_content:
 			if assert_non_hidden(content.fname):
 				ls_output += content.long_list_format(content.fname, flag)	
+
+	if 'i' in flags:
+		flag='i'
+		temp_out = []
+		print "This is the inode option"
+		for content in all_content:
+			if assert_non_hidden(content.fname):
+				 temp_out += (content.fname, get_inode_number(content.fname))
+		ls_output = list(temp_out)
 			
 	if 'l' in flags:
 		if len(ls_output) == 0:		
@@ -195,8 +206,10 @@ class Basefile(object):
 			result = [perms, links, user, grp, size, mtime, fname]
 		elif flag == 't':
 			result = [perms, links, user, grp, size, mtime, fname]
+		elif flag == 'i':
+			inode_number = get_inode_number(fname)
+			result = [inode_number, perms, links, user, grp, size, mtime, fname]
 
-			
 		return result
 
 
