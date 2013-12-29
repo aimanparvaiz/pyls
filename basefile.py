@@ -80,10 +80,15 @@ def ls_output_generator(dir_obj, file_obj, flags):
 			mtime_list += [get_last_modification_time(content.fname)]
 		ls_output += list(sorted(mtime_list))
 
-
-
+	if 'g' in flags:
+		print "This is g option"	
+		ls_output = []
+		for content in all_content:
+			if content.fname[0] != '.':
+				ls_output += content.option_g(content.fname)
+			
 	if 'l' in flags:
-		if len(ls_output) == 0:
+		if len(ls_output) == 0:		
 		#Just ls -l
 			print "this is simple -l option"
 			for content in all_content:
@@ -145,6 +150,19 @@ class Basefile(object):
 		result = [perms, links, user, grp, size, mtime, fname]
 		return result
 
+	def option_g(self, fname):
+		result = []
+		total_size = 0
+		perms, link = get_mode(fname)
+		user, grp = get_file_owners(fname)
+		size = get_file_size(fname)
+		total_size = total_size+size
+		links = get_links_to_inode(fname)
+		mtime = get_last_modification_time(fname)
+		result = [perms, links, grp, size, mtime, fname]
+		return result
+
+
 class Dir(Basefile):
 	def __init__(self, cwd, flags, dir_content):
 		Basefile.__init__(self, cwd, flags, dir_content)
@@ -152,9 +170,6 @@ class Dir(Basefile):
 
 class File(Basefile):
 	def __init__(self, cwd, flags, dir_content):
-		self.cwd = cwd
-		self.flags = flags
-		self.fname = dir_content
 		Basefile.__init__(self, cwd, flags, dir_content)
 
 
