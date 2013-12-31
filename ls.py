@@ -17,12 +17,10 @@ def ls_output_generator(dir_obj, file_obj, flags):
 			output_str += str(obj.get_inode_number(obj.fname)) + ' '
 		if 'm' in flags:
 			output_str += obj.fname+','+' '
+		if 'l' in flags:
+			output_str += obj.long_list_format(obj.fname)
 	print output_str
 		
-
-
-
-
 def identify_type(cwd, flags):
 	file_obj = []
 	dir_obj = []
@@ -47,6 +45,7 @@ def identify_type(cwd, flags):
 
 	ls_output_generator(dir_obj, file_obj, flags)
 
+
 class Basefile(object):
 	def __init__(self, cwd, flags, dir_content):
 		self.cwd = cwd
@@ -56,6 +55,76 @@ class Basefile(object):
 
 	def get_inode_number(self, fname):
 		return os.stat(fname).st_ino
+
+	def long_list_format(self, fname):
+		result = ''
+		total_size = 0
+		perms, link = self.get_mode(fname)
+		user, grp = self.get_file_owners(fname)
+		size = self.get_file_size(fname)
+		total_size = total_size+size
+		links = self.get_links_to_inode(fname)
+		mtime = str(self.get_last_modification_time(fname))
+		result += ' '+perms+' '+str(links)+' '+user+' '+grp+' '+str(size)+' '+str(mtime)+' '+fname
+		return result
+
+	def assert_non_hidden(self, fname):
+		if fname[0] != '.':
+			return True
+
+	def human_readable_file_size(self, num):
+		for x in ['B','K','M','G','T']:
+			if num < 1024.0:
+				if x == 'B':
+					return num
+				else:
+					return "%3.1f%s" % (num, x)
+			num = num/1024.0
+
+	def get_links_to_inode(self, fname):
+			return os.stat(fname).st_nlink
+		
+
+	def get_last_modification_time(self, fname):
+		t_sec = os.stat(fname).st_mtime
+		# Change time in s since epoch to struct_time
+
+		# Change struct_time to string given by format arg
+		return time.strftime("%b %d %H:%M", time.gmtime(t_sec))
+
+
+	def get_mode(self, fname):
+		perms="-"
+		link=""
+		#mode = int(oct(stat.S_IMODE(os.stat(l_file).st_mode)))
+		mode = os.stat(fname).st_mode
+		
+		if stat.S_ISLNK(mode):
+			perms = "l"
+			link = os.readlink(fname)
+			#f not os.path.exists(l_file):
+		elif stat.S_ISDIR(mode):
+			perms = "d"
+		for who in "USR", "GRP", "OTH" :
+			for what in "R", "W", "X":
+				if mode & getattr(stat, "S_I"+what+who):
+					perms=perms+what.lower()
+				else:
+					perms=perms+"-"
+		return (perms, link)		
+
+	def get_file_owners(self, fname):
+		uid = os.stat(fname).st_uid
+		gid = os.stat(fname).st_gid
+		
+		user = pwd.getpwuid(uid)[0]
+		group = grp.getgrgid(gid)[0]
+		
+		return (user, group)
+
+	def get_file_size(self, fname):
+		size = os.stat(fname).st_size
+		return size
 
 
 class Dir(Basefile):
