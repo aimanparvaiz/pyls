@@ -27,9 +27,3 @@ output "kubeconfig" {
 output "worker_security_group_id" {
   value = "${module.eks.worker_security_group_id}"
 }
-output "config_output_path" {
-  value = "${module.eks.config_output_path}"
-}
-output "kubeconfig_name" {
-  value = "${module.eks.kubeconfig_name}"
-}
