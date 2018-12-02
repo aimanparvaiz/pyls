@@ -3,7 +3,7 @@ module "eks" {
   version = "1.7.0"
   cluster_name = "${var.cluster_name}"
   vpc_id = "${var.vpc_id}"
-  subnets = "${var.private_subnets}"
+  subnets = "${var.subnets}"
   tags = "${var.tags}"
   worker_groups = "${var.worker_groups}"
   worker_group_count = "${var.worker_group_count}"
