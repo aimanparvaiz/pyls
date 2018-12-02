@@ -19,10 +19,4 @@ variable "worker_groups" {
   description = "A list of maps defining worker group configurations. See workers_group_defaults for valid keys."
   type        = "list"
 }
-variable "kubeconfig_name" {
-  description = "Name of the kubeconfig file"
-}
-variable "config_output_path" {
-  description = "Path for kubeconfig"
-}
 

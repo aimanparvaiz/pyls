@@ -7,8 +7,6 @@ module "eks" {
   tags = "${var.tags}"
   worker_groups = "${var.worker_groups}"
   worker_group_count = "${var.worker_group_count}"
-  kubeconfig_name = "${var.kubeconfig_name}"
-  config_output_path = "${var.config_output_path}"
 }
 output "cluster_certificate_authority_data" {
   value       = "${module.eks.cluster_certificate_authority_data}"
