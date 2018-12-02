@@ -1,9 +1,9 @@
 variable "cluster_name" {
   description = "Cluster name"
 }
-variable "private_subnets" {
+variable "subnets" {
   type = "list"
-  description = "List of subnet ids for nodes"
+  description = "List of subnet ids for EKS"
 }
 variable "tags" {
   type = "map"
