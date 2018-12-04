@@ -6,6 +6,8 @@ module "eks" {
   subnets = "${var.subnets}"
   tags = "${var.tags}"
   worker_groups = "${var.worker_groups}"
+  write_kubeconfig = true
+
   worker_group_count = "${var.worker_group_count}"
 }
 output "cluster_certificate_authority_data" {
